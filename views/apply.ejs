@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Apply for <%= job.title %></title>
+    <style>
+        body { font-family: sans-serif; background: #f8fafc; display: flex; justify-content: center; padding-top: 50px; }
+        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
+        h1 { font-size: 1.5rem; margin-bottom: 5px; }
+        p { color: #64748b; margin-bottom: 30px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; background: #3498db; color: white; border: none; padding: 14px; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+		/* The Loading Overlay */
+#loading-overlay {
+    display: none; /* Hidden by default */
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* The Spinner Animation */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div id="application-form">
+            <h1>Apply for <%= job.title %></h1>
+            <p>Complete the form below to start your application.</p>
+            
+            <form id="upload-form" action="/upload/<%= job._id %>" method="POST" enctype="multipart/form-data">
+                <label>Full Name</label>
+                <input type="text" name="candidateName" placeholder="e.g. Pascal Smith" required>
+                
+                <label>Email Address</label>
+                <input type="email" name="candidateEmail" placeholder="pascal@example.com" required>
+                
+                <label>Upload Resume (PDF)</label>
+                <input type="file" name="resume" accept="application/pdf" required>
+                
+                <button type="submit">Submit Application</button>
+            </form>
+        </div>
+
+        <div id="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text">Analyzing your resume with AI...</p>
+            <p style="color: #64748b; font-size: 0.9rem;">This usually takes 3-5 seconds.</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const formContainer = document.getElementById('application-form');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        form.onsubmit = function() {
+            // Hide the form
+            formContainer.style.display = 'none';
+            // Show the spinner
+            loadingOverlay.style.display = 'block';
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | HireLens</title>
+	<nav style="background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+		<img src="/logo.png" style="filter: brightness(0) invert(1); height: 35px;">
+        <span style="font-size: 20px; font-weight: bold; letter-spacing: -0.5px;">HireLens Admin</span>
+    </div>
+    <div>
+        <a href="/admin/jobs/new" style="color: white; text-decoration: none; margin-right: 20px;">+ Post Job</a>
+        <a href="/logout" style="color: #bdc3c7; text-decoration: none;">Logout</a>
+    </div>
+</nav>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f7f6; }
+        h1 { color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #3498db; color: white; }
+        tr:hover { background-color: #f9f9f9; }
+        .score-badge { padding: 5px 10px; border-radius: 20px; font-weight: bold; background: #eef2f3; }
+        .high-score { color: #27ae60; border: 1px solid #27ae60; }
+        .btn-view { color: #3498db; text-decoration: none; font-weight: bold; }
+        .job-tag { color: #7f8c8d; font-size: 0.9em; font-style: italic; }
+		/* Base Badge Style */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    min-width: 90px;
+}
+
+/* Color schemes for each status */
+.badge-applied {
+    background-color: #ebf5ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-interviewing {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.badge-hired {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); /* Slight Glow! */
+}
+
+.badge-rejected {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.stale-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: help;
+}
+
+/* Optional: Add a little "Urgent" pulse for candidates waiting 14+ days */
+.pulse-red {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+    </style>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <h1>Recruiter Dashboard</h1>
+    <p>Viewing all candidates ranked by AI Score.</p>
+	
+<div style="display: flex; gap: 20px; margin-bottom: 20px;">
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 300px;">
+        <canvas id="pipelineChart"></canvas>
+    </div>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+    <div style="background: white; padding: 20px; border-radius: 10px; flex: 1; border-left: 5px solid #3498db; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0; color: #64748b; font-size: 14px;">Total Applied</h3>
+        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;"><%= counts.Applied %></p>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; flex: 1; border-left: 5px solid #f1c40f; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0; color: #64748b; font-size: 14px;">Interviewing</h3>
+        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;"><%= counts.Interviewing %></p>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; flex: 1; border-left: 5px solid #2ecc71; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0; color: #64748b; font-size: 14px;">Hired</h3>
+        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;"><%= counts.Hired %></p>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; flex: 1; border-left: 5px solid #e74c3c; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0; color: #64748b; font-size: 14px;">Rejected</h3>
+        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;"><%= counts.Rejected %></p>
+    </div>
+</div>
+</div>	
+<div style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+<form action="/admin" method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+    <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search name or skills..." 
+           style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; flex-grow: 1;">
+
+    <select name="statusFilter" onchange="this.form.submit()" 
+            style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer;">
+        <option value="">All Statuses</option>
+        <option value="Applied" <%= statusFilter === 'Applied' ? 'selected' : '' %>>Applied</option>
+        <option value="Interviewing" <%= statusFilter === 'Interviewing' ? 'selected' : '' %>>Interviewing</option>
+        <option value="Hired" <%= statusFilter === 'Hired' ? 'selected' : '' %>>Hired</option>
+        <option value="Rejected" <%= statusFilter === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+    </select>
+
+    <button type="submit" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Filter
+    </button>
+    
+    <a href="/admin" style="text-decoration: none; color: #64748b; font-size: 14px;">Clear</a>
+
+	<a href="/admin/export?search=<%= searchTerm %>&statusFilter=<%= statusFilter %>" 
+   style="padding: 10px 15px; background: #27ae60; color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">
+   📥 Export CSV
+</a>
+
+	<a href="/admin/jobs/new" style="background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-left: 10px;">
+    ➕ Post New Job
+	</a>
+	</form>
+</div>
+
+<table>
+	<button id="bulkDeleteBtn" onclick="bulkDelete()" 
+        style="display: none; margin-bottom: 10px; padding: 10px 15px; background: #e11d48; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+    🗑️ Delete Selected (<span id="selectedCount">0</span>)
+	</button>
+    <thead>
+    <tr style="background: #f8fafc; text-align: left;">
+        <th style="padding: 12px;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+        <th style="padding: 12px;">Candidate</th>
+		<th style="padding: 12px;">Email</th>
+        <th style="padding: 12px;">Job Role</th>
+        <th style="padding: 12px;">AI Score</th>
+        <th style="padding: 12px;">Applied</th>
+		<th style="padding: 12px;">Status</th>
+        <th style="padding: 12px;">Actions</th>
+    </tr>
+</thead>
+    <tbody>
+        <% candidates.forEach(candidate => { %>
+			<tr id="row-<%= candidate._id %>" style="border-bottom: 1px solid #eee;">
+				<td style="padding: 12px;">
+				<input type="checkbox" class="candidate-checkbox" value="<%= candidate._id %>">
+				</td>
+                <td>
+				<div style="display: flex; align-items: center; gap: 10px;">
+				<strong><%= candidate.candidateName %></strong>
+				</div>
+				<td>
+				<div style="font-size: 11px; color: #64748b;"><%= candidate.candidateEmail %></div>
+				</td>
+                <<td>
+					<div style="font-weight: bold;"><%= candidate.jobTitle %></div>
+    
+						<% const jobObj = jobs.find(j => j._id.toString() === candidate.jobId.toString()); %>
+						<% if (jobObj && jobObj.aiSummary) { %>
+						<div style="font-size: 0.75rem; color: #7f8c8d; font-style: italic; max-width: 200px;">
+						"<%= jobObj.aiSummary %>"
+					</div>
+						<% } %>
+				</td>
+                <td>
+                    <span class="score-badge <%= candidate.evaluation.score > 80 ? 'high-score' : '' %>">
+                        <%= candidate.evaluation.score %>/100
+                    </span>
+                </td>
+				<td>
+    <% 
+        // Calculate the difference in days
+        const appliedDate = new Date(candidate.appliedAt);
+        const today = new Date();
+        const diffInMs = today - appliedDate;
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+        
+        // Pick a color based on how "stale" the application is
+        let dateColor = "#64748b"; // Default grey
+        if (diffInDays > 7) dateColor = "#d97706"; // Amber for 1 week+
+        if (diffInDays > 14) dateColor = "#e11d48"; // Red for 2 weeks+
+    %>
+
+    <div style="font-weight: bold; color: <%= dateColor %>;">
+        <%= diffInDays === 0 ? "Today" : diffInDays + " days ago" %>
+    </div>
+    <div style="font-size: 11px; color: #94a3b8;">
+        <%= appliedDate.toLocaleDateString() %>
+    </div>
+</td>
+                <td>
+    <% 
+        // Determine which CSS class to use
+        let badgeClass = 'badge-applied';
+        if (candidate.status === 'Interviewing') badgeClass = 'badge-interviewing';
+        if (candidate.status === 'Hired') badgeClass = 'badge-hired';
+        if (candidate.status === 'Rejected') badgeClass = 'badge-rejected';
+    %>
+
+    <div class="status-badge <%= badgeClass %>">
+        <select onchange="updateStatus('<%= candidate._id %>', this.value)" 
+                style="background: transparent; border: none; color: inherit; font-weight: inherit; cursor: pointer; font-size: inherit; outline: none;">
+            <option value="Applied" <%= candidate.status === 'Applied' ? 'selected' : '' %>>Applied</option>
+            <option value="Interviewing" <%= candidate.status === 'Interviewing' ? 'selected' : '' %>>Interviewing</option>
+            <option value="Rejected" <%= candidate.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+            <option value="Hired" <%= candidate.status === 'Hired' ? 'selected' : '' %>>Hired</option>
+        </select>
+    </div>
+</td>
+               <td><a href="<%= candidate.resumeUrl %>" target="_blank" style="text-decoration: none;">
+					📄 View Resume
+					</a></td>
+
+				<td style="text-align: center;">
+					<button onclick="deleteCandidate('<%= candidate._id %>')" 
+					style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 18px;" 
+					title="Delete Candidate">
+					🗑️
+					</button>
+				</td>
+				<td>
+					<% if (candidate.evaluation.top_3_skills) { %>
+					<% candidate.evaluation.top_3_skills.forEach(skill => { %>
+					<span style="background: #e1f5fe; color: #0288d1; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px;">
+					<%= skill %>
+					</span>
+					<% }) %>
+					<% } %>
+				</td>
+	         </tr>
+ 
+        <% }) %>
+    </tbody>
+</table>
+<hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
+<h3>Active Job Postings</h3>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+    <% jobs.forEach(job => { %>
+        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="display: block;"><%= job.title %></strong>
+                <span style="font-size: 12px; color: #64748b;"><%= job.location %></span>
+            </div>
+            <button onclick="deleteJob('<%= job._id %>')" style="background:none; border:none; color:#e74c3c; cursor:pointer;">🗑️</button>
+        </div>
+    <% }) %>
+</div>
+
+<script>
+async function deleteJob(id) {
+    if (!confirm("Delete this job? Candidates who applied for it will now show as 'Unknown Job'.")) return;
+    const response = await fetch(`/admin/job/${id}`, { method: 'DELETE' });
+    if (response.ok) window.location.reload();
+}
+</script>
+    <br>
+    <a href="/" style="text-decoration: none; color: #7f8c8d;">← Back to Job Board</a>
+<script>
+async function updateStatus(id, newStatus) {
+    console.log("📡 Attempting to update:", id, "to", newStatus); // <--- ADD THIS
+    
+    try {
+        const response = await fetch(`/admin/status/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+            console.log("🚀 Server responded OK!"); // <--- ADD THIS
+            if (newStatus === 'Hired') {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+            // Wait 1.5 seconds before reload so you can see the confetti!
+            setTimeout(() => window.location.reload(), 1500); 
+        } else {
+            console.error("📩 Server responded with an error:", response.status);
+        }
+    } catch (err) {
+        console.error("🌐 Network error:", err);
+    }
+}
+async function deleteCandidate(id) {
+    if (!confirm("Are you sure you want to delete this candidate? This cannot be undone.")) return;
+
+    try {
+        const response = await fetch(`/admin/candidate/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            // Remove the row from the table immediately for that "snappy" feel
+            window.location.reload(); 
+        } else {
+            alert("Failed to delete candidate.");
+        }
+    } catch (err) {
+        console.error("Delete error:", err);
+    }
+}
+</script>
+
+<script>
+    const ctx = document.getElementById('pipelineChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Applied', 'Interviewing', 'Rejected', 'Hired'],
+            datasets: [{
+                data: [<%= counts.Applied %>, <%= counts.Interviewing %>, <%= counts.Rejected %>, <%= counts.Hired %>],
+                backgroundColor: ['#3498db', '#f1c40f', '#e74c3c', '#2ecc71'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '70%'
+        }
+    });
+
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.candidate-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    updateBulkBtn();
+}
+
+// Update button visibility and count
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('candidate-checkbox') || e.target.id === 'selectAll') {
+        updateBulkBtn();
+    }
+});
+
+function updateBulkBtn() {
+    const selected = document.querySelectorAll('.candidate-checkbox:checked');
+    const btn = document.getElementById('bulkDeleteBtn');
+    const countSpan = document.getElementById('selectedCount');
+    
+    if (selected.length > 0) {
+        btn.style.display = 'inline-block';
+        countSpan.innerText = selected.length;
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+async function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.candidate-checkbox:checked')).map(cb => cb.value);
+    
+    if (confirm(`Are you sure you want to delete ${selected.length} candidates and their resumes?`)) {
+        const response = await fetch('/admin/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: selected })
+        });
+
+        if (response.ok) {
+            location.reload(); // Refresh to show clean slate
+        } else {
+            alert("Bulk delete failed.");
+        }
+    }
+}
+</script>
+</body>
+</html>

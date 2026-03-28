@@ -1,0 +1,8 @@
+node_modules
+.env
+.DS_Store
+Archive/
+*.txt
+serverv0.js
+s3-test.js
+app.js

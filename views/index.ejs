@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers | HireLens</title>
+    <style>
+        :root { --primary: #3498db; --dark: #2c3e50; --bg: #f8fafc; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 0; }
+        
+        /* Hero Section */
+        .hero { background: white; padding: 60px 20px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--dark); }
+        .hero p { color: #64748b; font-size: 1.1rem; }
+
+        /* Container */
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        
+        /* Job Card Grid */
+        .job-grid { display: grid; gap: 20px; }
+        .job-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .job-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary);
+        }
+
+        .job-info h3 { margin: 0 0 5px 0; font-size: 1.25rem; }
+        .job-meta { color: #94a3b8; font-size: 0.9rem; display: flex; gap: 15px; }
+        
+        .apply-btn { 
+            background: var(--primary); 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .admin-link { text-align: center; margin-top: 40px; display: block; color: #94a3b8; text-decoration: none; font-size: 0.8rem; }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: sans-serif; background: #f8fafc;">
+
+    <header style="background: #ffffff; padding: 40px 0; border-bottom: 2px solid #e2e8f0; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <img src="/logo.png" alt="HireLens Logo" style="height: 80px; width: auto; margin-bottom: 15px;">
+            <h1 style="margin: 0; color: #1e293b; font-size: 36px; font-weight: 800;">HireLens <span style="color: #3b82f6;">Job Board</span></h1>
+            <h2 style="color: #334155;">Join the Team</h2>
+        </div>
+    </header>
+
+    <main style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+        
+        
+
+    <div class="container">
+        <div class="job-grid">
+            <% jobs.forEach(job => { %>
+                <a href="/job/<%= job._id %>" class="job-card">
+                    <div class="job-info">
+                        <h3><%= job.title %></h3>
+                        <div class="job-meta">
+							<span>📍 <%= job.location %></span> | 
+							<span>💰 <%= job.salary %></span>
+                        </div>
+                    </div>
+                    <div class="apply-btn">View Job</div>
+                </a>
+            <% }) %>
+        </div>
+
+        <a href="/admin" class="admin-link">Internal Admin Access</a>
+    </div>
+
+</body>
+</html>
