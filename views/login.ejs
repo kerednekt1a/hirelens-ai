@@ -14,10 +14,23 @@
     <div class="login-box">
         <h1>HireLens Admin</h1>
         <% if (error) { %> <div class="error"><%= error %></div> <% } %>
-        <form action="/login" method="POST">
-            <input type="password" name="password" placeholder="Enter Admin Password" required autofocus>
-            <button type="submit">Login</button>
-        </form>
+		<form action="/login" method="POST" style="max-width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+			<h2 style="text-align: center;">Admin Login</h2>
+    
+			<div style="margin-bottom: 15px;">
+				<label>Username:</label>
+				<input type="text" name="username" required style="width: 100%; padding: 8px; margin-top: 5px;">
+			</div>
+
+			<div style="margin-bottom: 15px;">
+				<label>Password:</label>
+				<input type="password" name="password" required style="width: 100%; padding: 8px; margin-top: 5px;">
+			</div>
+
+			<button type="submit" style="width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+				Login
+			</button>
+		</form>
     </div>
 </body>
 </html>

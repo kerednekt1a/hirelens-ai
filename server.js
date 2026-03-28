@@ -8,7 +8,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() }); // Temporary RAM storage
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`? Server running on port ${PORT}`));
 
 // --- 1. CONFIGURATIONS (Now pulling from .env) ---
 const dbUri = process.env.dbUri;
@@ -18,12 +17,11 @@ const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 
 const nodemailer = require('nodemailer');
 
-// 📧 The Mailman Configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail', // or your provider
     auth: {
-        user: 'dereksaitken+hirelens@gmail.com', 
-        pass: 'onplnnldxdhsympf' 
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -46,19 +44,19 @@ app.use(express.urlencoded({ extended: true }));
 const session = require('express-session');
 
 app.use(session({
-    secret: 'rebel-hiring-secret-key', // Change this to a random string
+    secret: process.env.SESSION_SECRET || 'rebel-secret',
     resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 3600000 } // Session expires in 1 hour
+    saveUninitialized: false,
+    cookie: { secure: false } // Keep this false until you are 100% sure your live site is HTTPS
 }));
 
 // 🛡️ THE MIDDLEWARE: This checks if the user is logged in
-const checkAuth = (req, res, next) => {
-    if (req.session.loggedIn) {
-        next(); // They have the pass! Carry on.
-    } else {
-        res.redirect('/login'); // No pass? Go to login.
+function checkAuth(req, res, next) {
+    if (req.session && req.session.isAdmin) {
+        return next(); // 🟢 You're allowed in!
     }
+    console.log("🚫 Auth Failed: Redirecting back to login.");
+    res.redirect('/login'); // 🔴 This is what's causing the "Blink"
 };
 
 // --- 2. ROUTES ---
@@ -156,8 +154,11 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
 
         // 6. Send Email Alert (Using candidateName)
         const mailOptions = {
-            from: '"HireLens Alerts" <dereksaitken+HireLens@gmail.com>',
-            to: 'dereksaitken+HireLens@gmail.com',
+		// We use backticks and ${} to "inject" the variable into the string
+			from: `"HireLens Alerts" <${process.env.EMAIL_USER}>`,
+			
+		// We reference the variable directly (no quotes) because it's just the email address
+			to: process.env.EMAIL_USER,
             subject: `🚀 New Candidate: ${candidateName} (Score: ${evaluation.score}/100)`,
             html: `
                 <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -166,7 +167,7 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
                     <p><strong>AI Score:</strong> <span style="font-size: 20px; color: #27ae60;">${evaluation.score}</span></p>
                     <p><strong>Summary:</strong> ${evaluation.summary}</p>
                     <hr>
-                    <a href="http://localhost:3000/admin" style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Dashboard</a>
+                    <a href="https://your-app-name.onrender.com/admin" style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Dashboard</a>
                 </div>
             `
         };
@@ -499,16 +500,20 @@ app.post('/admin/bulk-delete', checkAuth, async (req, res) => {
 app.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
-
 app.post('/login', (req, res) => {
-    const { password } = req.body;
-    if (password === 'rebel123') { // 👈 YOUR ADMIN PASSWORD
-        req.session.loggedIn = true;
+    
+    const { username, password } = req.body;
+
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        console.log("✅ Success! Redirecting...");
+        req.session.isAdmin = true;
         res.redirect('/admin');
     } else {
-        res.render('login', { error: 'Invalid Password' });
+        console.log("❌ Failed: Credentials did not match.");
+        res.send('Invalid credentials. <a href="/login">Try again</a>');
     }
 });
+
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
@@ -518,3 +523,4 @@ app.get('/logout', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 HireLens V1 is running at http://localhost:${PORT}`);
 });
+module.exports = app;
