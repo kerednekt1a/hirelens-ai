@@ -20,9 +20,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Inside your application route, replace the old email logic:
 try {
     await resend.emails.send({
