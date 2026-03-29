@@ -20,17 +20,20 @@ const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    // This is one of Google's direct IPv4 addresses for SMTP
+    host: "74.125.136.108", 
     port: 465,
-    secure: true, // true for 465, false for 587
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // This forces the connection to stay open longer for cloud handshakes
-    connectionTimeout: 20000, 
-    greetingTimeout: 20000,
-    socketTimeout: 20000
+    // We keep the TLS settings to make sure Gmail accepts the "unnamed" host
+    tls: {
+        servername: 'smtp.gmail.com',
+        rejectUnauthorized: false 
+    },
+    connectionTimeout: 20000
 });
 
 const client = new MongoClient(dbUri);
