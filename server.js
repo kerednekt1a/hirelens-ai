@@ -1,8 +1,6 @@
+require('node:dns').setDefaultResultOrder('ipv4first'); // The "One-Liner" Fix
 require('dotenv').config();
-const dns = require('node:dns');
-dns.setDefaultResultOrder('ipv4first');
-const dns = require('node:dns');
-const dns = require('node:dns');
+
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const multer = require('multer');
