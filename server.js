@@ -1,6 +1,8 @@
 require('dotenv').config();
 const dns = require('node:dns');
 dns.setDefaultResultOrder('ipv4first');
+const dns = require('node:dns');
+const dns = require('node:dns');
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const multer = require('multer');
@@ -20,17 +22,17 @@ const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
+    host: "smtp.gmail.com",
     port: 465,
-    secure: false,
+    secure: true, // true for 465, false for 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // Adding a timeout helps if the cloud network is "lazy"
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000
+    // This forces the connection to stay open longer for cloud handshakes
+    connectionTimeout: 20000, 
+    greetingTimeout: 20000,
+    socketTimeout: 20000
 });
 
 const client = new MongoClient(dbUri);
