@@ -1,3 +1,6 @@
+const { Resend } = require('resend'); 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 require('node:dns').setDefaultResultOrder('ipv4first'); // The "One-Liner" Fix
 require('dotenv').config();
 
@@ -17,24 +20,22 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-    // This is one of Google's direct IPv4 addresses for SMTP
-    host: "74.125.136.108", 
-    port: 465,
-    secure: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    // We keep the TLS settings to make sure Gmail accepts the "unnamed" host
-    tls: {
-        servername: 'smtp.gmail.com',
-        rejectUnauthorized: false 
-    },
-    connectionTimeout: 20000
-});
+// Inside your application route, replace the old email logic:
+try {
+    await resend.emails.send({
+        from: 'HireLens <onboarding@resend.dev>', // Resend gives you this for testing
+        to: process.env.EMAIL_USER, // Your personal email
+        subject: `High Score Alert: ${candidateName}`,
+        html: `<p>New application for <strong>${jobTitle}</strong></p>
+               <p>Score: ${evaluation.score}/100</p>`
+    });
+    console.log("📧 Email sent via Resend API!");
+} catch (error) {
+    console.error("📧 API Email failed:", error);
+}
 
 const client = new MongoClient(dbUri);
 const db = client.db("hirelens"); // Force it to use the hirelens DB
