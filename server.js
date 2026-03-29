@@ -17,8 +17,8 @@ const PORT = process.env.PORT || 3000;
 // --- 1. CONFIGURATIONS (Now pulling from .env) ---
 const dbUri = process.env.dbUri;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
-const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+const AWS_ACCESS_KEY = process.env.MY_AWS_ACCESS_KEY;
+const AWS_SECRET_KEY = process.env.MY_AWS_SECRET_KEY;
 
 const client = new MongoClient(dbUri);
 const db = client.db("hirelens"); // Force it to use the hirelens DB
