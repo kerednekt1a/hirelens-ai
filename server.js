@@ -20,20 +20,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
 
-// Inside your application route, replace the old email logic:
-try {
-    await resend.emails.send({
-        from: 'HireLens <onboarding@resend.dev>', // Resend gives you this for testing
-        to: process.env.EMAIL_USER, // Your personal email
-        subject: `High Score Alert: ${candidateName}`,
-        html: `<p>New application for <strong>${jobTitle}</strong></p>
-               <p>Score: ${evaluation.score}/100</p>`
-    });
-    console.log("📧 Email sent via Resend API!");
-} catch (error) {
-    console.error("📧 API Email failed:", error);
-}
-
 const client = new MongoClient(dbUri);
 const db = client.db("hirelens"); // Force it to use the hirelens DB
 
@@ -162,32 +148,20 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
         }
 
         // 6. Send Email Alert (Using candidateName)
-        const mailOptions = {
-		// We use backticks and ${} to "inject" the variable into the string
-			from: `"HireLens Alerts" <${process.env.EMAIL_USER}>`,
-			
-		// We reference the variable directly (no quotes) because it's just the email address
-			to: process.env.EMAIL_USER,
-            subject: `🚀 New Candidate: ${candidateName} (Score: ${evaluation.score}/100)`,
-            html: `
-                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #2c3e50;">New Application for ${jobTitle}</h2> 
-                    <p><strong>Candidate Name:</strong> ${candidateName}</p>
-                    <p><strong>AI Score:</strong> <span style="font-size: 20px; color: #27ae60;">${evaluation.score}</span></p>
-                    <p><strong>Summary:</strong> ${evaluation.summary}</p>
-                    <hr>
-                    <a href="https://your-app-name.onrender.com/admin" style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Dashboard</a>
-                </div>
-            `
-        };
-
-        if (evaluation.score >= 80) {
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) console.log("📧 Email failed:", error);
-                else console.log("📧 Email sent: " + info.response);
-            });
-        }
-
+  // Inside your application route, replace the old email logic:
+		try {
+			await resend.emails.send({
+				from: 'HireLens <onboarding@resend.dev>', // Resend gives you this for testing
+				to: process.env.EMAIL_USER, // Your personal email
+				subject: `High Score Alert: ${candidateName}`,
+				html: `<p>New application for <strong>${jobTitle}</strong></p>
+				<p>Score: ${evaluation.score}/100</p>`
+			});
+				console.log("📧 Email sent via Resend API!");
+			} catch (error) {
+				console.error("📧 API Email failed:", error);
+			}
+		
         // 7. Success Screen
         res.send(`
 			<body style="font-family:sans-serif; background:#f4f7f6; margin:0; padding:50px 0; display:flex; flex-direction:column; align-items:center;">
@@ -509,6 +483,7 @@ app.post('/admin/bulk-delete', checkAuth, async (req, res) => {
 app.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
+
 app.post('/login', (req, res) => {
     
     const { username, password } = req.body;
@@ -522,7 +497,6 @@ app.post('/login', (req, res) => {
         res.send('Invalid credentials. <a href="/login">Try again</a>');
     }
 });
-
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
