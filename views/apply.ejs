@@ -39,6 +39,23 @@
     font-weight: 600;
     font-size: 1.1rem;
 }
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #FFF;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
@@ -57,7 +74,10 @@
                 <label>Upload Resume (PDF)</label>
                 <input type="file" name="resume" accept="application/pdf" required>
                 
-                <button type="submit">Submit Application</button>
+                <button type="submit" id="uploadBtn" class="btn-primary">
+					<span id="btnText">Upload & Analyze</span>
+					<span id="spinner" style="display: none;" class="loader"></span>
+				</button>
             </form>
         </div>
 
@@ -69,6 +89,15 @@
     </div>
 
     <script>
+		const uploadBtn = document.getElementById('uploadBtn');
+		const btnText = document.getElementById('btnText');
+		const spinner = document.getElementById('spinner');
+
+// Disable button and show spinner when clicked
+		uploadBtn.disabled = true;
+		btnText.innerText = "AI is Analyzing...";
+		spinner.style.display = "inline-block";
+		
         const form = document.getElementById('upload-form');
         const formContainer = document.getElementById('application-form');
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -78,7 +107,12 @@
             formContainer.style.display = 'none';
             // Show the spinner
             loadingOverlay.style.display = 'block';
-        };
+        }
+		// Inside your .then() or after the upload finishes:
+		uploadBtn.disabled = false;
+		btnText.innerText = "Upload & Analyze";
+		spinner.style.display = "none";
+		;
     </script>
 </body>
 </html>
