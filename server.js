@@ -150,7 +150,6 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
         // 6. Send Email Alert (Using candidateName)
 
 		await resend.emails.send({
-		// Replace 'yourdomain.com' with your actual domain (e.g., hirelens.ai)
 			from: 'HireLens AI <alerts@21stcenturyjobsearch.com>', 
 			to: process.env.EMAIL_USER,
 			subject: `🚀 High Score Alert: ${candidateName}`,
@@ -163,7 +162,7 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
 					<p style="font-size: 18px;"><strong>Score: ${evaluation.score}/100</strong></p>
 					<p>Check the admin dashboard for the full AI breakdown.</p>
 				</div>
-    `
+				`
 });
 				console.log("📧 Email sent via Resend API!");
 			} catch (error) {
