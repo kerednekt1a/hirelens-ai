@@ -151,7 +151,7 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
 
 		await resend.emails.send({
 		// Replace 'yourdomain.com' with your actual domain (e.g., hirelens.ai)
-			'HireLens AI <alerts@21stcenturyjobsearch.com/>', 
+			'HireLens AI <alerts@21stcenturyjobsearch.com>', 
 			to: process.env.EMAIL_USER,
 			subject: `🚀 High Score Alert: ${candidateName}`,
 			html: `
