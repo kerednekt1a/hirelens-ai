@@ -149,17 +149,18 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
 
         // 6. Send Email Alert (Using candidateName)
 
+		try {
+            await resend.emails.send({
+                from: 'HireLens AI <alerts@21stcenturyjobsearch.com>',
+                to: process.env.EMAIL_USER,
+                subject: `🚀 High Score: ${candidateName}`,
+                html: `<h1>New Application</h1><p>${candidateName} scored ${evaluation.score}/100</p>`
+            });
+            console.log("📧 Email sent via Resend API!");
+        } catch (error) {
+            console.error("📧 API Email failed:", error);
+        }
 
-		await resend.emails.send({		
-			from: 'HireLens AI <alerts@21stcenturyjobsearch.com>', // <--- Is the 'from:' here?
-			to: process.env.EMAIL_USER,
-			subject: `🚀 High Score: ${candidateName}`,
-			html: `<h1>New Application</h1><p>${candidateName} scored ${evaluation.score}/100</p>`
-});
-				console.log("📧 Email sent via Resend API!");
-			} catch (error) {
-				console.error("📧 API Email failed:", error);
-			}
 		
         // 7. Success Screen
         res.send(`
