@@ -148,15 +148,23 @@ app.post('/upload/:jobId', upload.single('resume'), async (req, res) => {
         }
 
         // 6. Send Email Alert (Using candidateName)
-  // Inside your application route, replace the old email logic:
-		try {
-			await resend.emails.send({
-				from: 'HireLens <onboarding@resend.dev>', // Resend gives you this for testing
-				to: process.env.EMAIL_USER, // Your personal email
-				subject: `High Score Alert: ${candidateName}`,
-				html: `<p>New application for <strong>${jobTitle}</strong></p>
-				<p>Score: ${evaluation.score}/100</p>`
-			});
+
+		await resend.emails.send({
+		// Replace 'yourdomain.com' with your actual domain (e.g., hirelens.ai)
+			'HireLens AI <alerts@21stcenturyjobsearch.com/>', 
+			to: process.env.EMAIL_USER,
+			subject: `🚀 High Score Alert: ${candidateName}`,
+			html: `
+				<div style="font-family: sans-serif; line-height: 1.5;">
+					<h2>New Candidate Evaluation</h2>
+					<p><strong>Candidate:</strong> ${candidateName}</p>
+					<p><strong>Job ID:</strong> ${req.params.jobId}</p>
+					<hr />
+					<p style="font-size: 18px;"><strong>Score: ${evaluation.score}/100</strong></p>
+					<p>Check the admin dashboard for the full AI breakdown.</p>
+				</div>
+    `
+});
 				console.log("📧 Email sent via Resend API!");
 			} catch (error) {
 				console.error("📧 API Email failed:", error);
